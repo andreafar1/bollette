@@ -1,0 +1,13 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Account email - Bollette</title>
+<style>body{font-family:system-ui;margin:0;background:#f5f6f8;color:#17202a}.wrap{max-width:950px;margin:auto;padding:24px}.panel{background:#fff;border-radius:14px;padding:20px;margin:16px 0;box-shadow:0 2px 12px #0001}.providers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.provider{border:1px solid #e1e5e9;border-radius:12px;padding:18px}button,.btn,input{padding:10px 14px;border:1px solid #ccd2d8;border-radius:8px}.btn{display:inline-block;text-decoration:none;color:#17202a;background:#f7f7f7}form{display:flex;gap:8px;flex-wrap:wrap}.ok{color:#18794e}.err{color:#b42318}small{color:#667085}</style></head>
+<body><div class="wrap"><p><a href="/">← Dashboard</a></p><h1>Account email</h1><p>Collega le caselle da cui importare automaticamente le bollette PDF.</p>
+{% if msg %}<div class="panel">{{msg}}</div>{% endif %}
+<div class="providers">
+<div class="provider"><h3>Gmail</h3><p>Collegamento sicuro con Google OAuth e accesso in sola lettura.</p>{% if gmail_ready %}<a class="btn" href="/email/connect/gmail">Accedi con Google</a>{% else %}<small>Configurare prima Client ID e Client Secret Google sul server.</small>{% endif %}</div>
+<div class="provider"><h3>Microsoft / Outlook</h3><p>Outlook.com, Hotmail e account Microsoft tramite OAuth.</p>{% if microsoft_ready %}<a class="btn" href="/email/connect/microsoft">Accedi con Microsoft</a>{% else %}<small>Configurare prima Client ID e Client Secret Microsoft sul server.</small>{% endif %}</div>
+<div class="provider"><h3>Yahoo Mail</h3><p>Usa una password per app Yahoo, non la password principale.</p><form method="post" action="/email/yahoo"><input type="email" name="email" placeholder="email@yahoo.it" required><input type="password" name="app_password" placeholder="Password per app" required><button>Collega Yahoo</button></form></div>
+</div>
+<div class="panel"><h2>Account collegati</h2>
+{% for a in accounts %}<div style="padding:14px 0;border-bottom:1px solid #eee"><b>{{a.provider|upper}}</b> {{a.email or 'Account OAuth'}} {% if a.last_error %}<span class="err">Errore: {{a.last_error}}</span>{% elif a.last_sync %}<span class="ok">Sincronizzato {{a.last_sync}}</span>{% endif %}
+<form style="margin-top:8px" method="post" action="/email/{{a.id}}/sync"><button>Sincronizza ora</button></form><form style="display:inline" method="post" action="/email/{{a.id}}/delete"><button>Disconnetti</button></form></div>
+{% else %}<p>Nessun account collegato.</p>{% endfor %}</div></div></body></html>
