@@ -18,7 +18,7 @@ class Bill(Base):
     email_sender: Mapped[str|None]=mapped_column(String(500),nullable=True)
     email_subject: Mapped[str|None]=mapped_column(String(1000),nullable=True)
     email_date: Mapped[datetime|None]=mapped_column(DateTime,nullable=True)
-    content_hash: Mapped[str|None]=mapped_column(String(64),nullable=True)
+    content_hash: Mapped[str|None]=mapped_column(String(64),nullable=True)\n    smart_url: Mapped[str|None]=mapped_column(Text,nullable=True)
     created_at: Mapped[datetime]=mapped_column(DateTime,default=datetime.utcnow)
 
 class EmailAccount(Base):
