@@ -33,6 +33,75 @@ def dec(v):
     try:return str(make_header(decode_header(v or "")))
     except:return v or ""
 
+def message_text(msg):
+    chunks=[]
+    for part in msg.walk():
+        if part.get_content_type() not in ("text/plain","text/html"):
+            continue
+        raw=part.get_payload(decode=True)
+        if not raw:
+            continue
+        charset=part.get_content_charset() or "utf-8"
+        try:
+            s=raw.decode(charset,errors="replace")
+        except LookupError:
+            s=raw.decode("utf-8",errors="replace")
+        if part.get_content_type()=="text/html":
+            s=re.sub(r"<[^>]+>"," ",s)
+            s=unescape(s)
+        chunks.append(re.sub(r"\s+"," ",s))
+    return " ".join(chunks)
+
+def save_notification(msg,account,sender,subject,mail_date):
+    text=message_text(msg)
+    hay=f"{sender} {subject} {text}".lower()
+    if "bolletta" not in hay and "fattura" not in hay:
+        return False
+
+    provider="Da verificare"
+    if "plenitude" in hay or "eniplenitude" in hay:
+        provider="Eni Plenitude"
+    elif "enel" in hay:
+        provider="Enel Energia"
+    elif "acea" in hay:
+        provider="Acea"
+    elif "a2a" in hay:
+        provider="A2A"
+    elif "hera" in hay:
+        provider="Hera"
+
+    category="Altro"
+    if re.search(r"\b(luce|energia elettrica|elettric)\b",hay):
+        category="Luce"
+    elif re.search(r"\bgas\b",hay):
+        category="Gas"
+    elif re.search(r"\bacqua\b",hay):
+        category="Acqua"
+
+    due=None
+    m=re.search(r"(?:scadenza|scade|entro il)[^0-9]{0,30}(\d{1,2}[/-]\d{1,2}[/-]\d{4})",text,re.I)
+    if m:
+        for fmt in ("%d/%m/%Y","%d-%m-%Y"):
+            try:
+                due=datetime.strptime(m.group(1),fmt).date()
+                break
+            except ValueError:
+                pass
+
+    inv=None
+    m=re.search(r"(?:bolletta|fattura)(?:\s+(?:n\.?|numero))?\s*([0-9]{5,})",text,re.I)
+    if m:
+        inv=m.group(1)
+
+    identity=(msg.get("Message-ID") or f"{sender}|{subject}|{mail_date}").encode("utf-8",errors="ignore")
+    h=hashlib.sha256(identity).hexdigest()
+    with SessionLocal() as db:
+        if db.scalar(select(Bill.id).where(Bill.content_hash==h)):
+            return False
+        db.add(Bill(provider=provider,category=category,due_date=due,invoice_number=inv,content_hash=h,source_account=account,email_sender=sender[:500],email_subject=subject[:1000],email_date=mail_date))
+        db.commit()
+    return True
+
 def sync_yahoo(a):
     m=imaplib.IMAP4_SSL("imap.mail.yahoo.com",993); m.login(a.email,a.secret); m.select("INBOX")
     _,ids=m.search(None,"ALL")
