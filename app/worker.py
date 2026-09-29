@@ -26,7 +26,7 @@ def save_pdf(payload,account="",sender="",subject="",mail_date=None):
     if not path.exists(): path.write_bytes(payload)
     d=parse_pdf(path)
     with SessionLocal() as db:
-        db.add(Bill(provider=d["provider"],amount=d["amount"],due_date=d["due_date"],pdf_path=str(path),content_hash=h,source_account=account,email_sender=sender[:500],email_subject=subject[:1000],email_date=mail_date)); db.commit()
+        db.add(Bill(provider=d["provider"],amount=d["amount"],due_date=d["due_date"],pdf_path=str(path),content_hash=h,source_account=account,email_sender=sender[:500],email_subject=subject[:1000],email_date=mail_date,smart_url=smart_url)); db.commit()
     return True
 
 def dec(v):
@@ -92,6 +92,23 @@ def save_notification(msg,account,sender,subject,mail_date):
     m=re.search(r"(?:bolletta|fattura)(?:\s+(?:n\.?|numero))?\s*([0-9]{5,})",text,re.I)
     if m:
         inv=m.group(1)
+
+    smart_url=None
+    for part in msg.walk():
+        if part.get_content_type()!="text/html":
+            continue
+        raw=part.get_payload(decode=True)
+        if not raw:
+            continue
+        charset=part.get_content_charset() or "utf-8"
+        try:
+            html=raw.decode(charset,errors="replace")
+        except LookupError:
+            html=raw.decode("utf-8",errors="replace")
+        links=re.findall(r'''href=["']([^"']+)["']''',html,re.I)
+        smart_url=next((unescape(x) for x in links if "interattiva.eniplenitude.com" in x.lower()),None)
+        if smart_url:
+            break
 
     identity=(msg.get("Message-ID") or f"{sender}|{subject}|{mail_date}").encode("utf-8",errors="ignore")
     h=hashlib.sha256(identity).hexdigest()
