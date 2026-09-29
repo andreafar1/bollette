@@ -17,7 +17,7 @@ STORAGE=Path(os.getenv("STORAGE_DIR","/var/lib/bollette/storage")); STORAGE.mkdi
 oauth_states={}
 
 @app.on_event("startup")
-def startup(): Base.metadata.create_all(engine)
+def startup():\n    Base.metadata.create_all(engine)\n    from .migrations import migrate\n    migrate()
 
 def derived_status(b):
     if b.status=="PAGATA": return "PAGATA"
