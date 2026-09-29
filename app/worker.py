@@ -1,4 +1,5 @@
-import os, imaplib, email, hashlib, base64, re\nfrom html import unescape
+import os, imaplib, email, hashlib, base64, re
+from html import unescape
 from datetime import datetime
 from email.header import decode_header, make_header
 from email.utils import parsedate_to_datetime
@@ -40,7 +41,8 @@ def sync_yahoo(a):
         sender=dec(msg.get("From")); subject=dec(msg.get("Subject"))
         try: dt=parsedate_to_datetime(msg.get("Date")).replace(tzinfo=None)
         except: dt=None
-        save_notification(msg,a.email,sender,subject,dt)\n        for part in msg.walk():
+        save_notification(msg,a.email,sender,subject,dt)
+        for part in msg.walk():
             fn=dec(part.get_filename())
             if fn.lower().endswith(".pdf") and relevant(sender,subject,fn):
                 payload=part.get_payload(decode=True)
