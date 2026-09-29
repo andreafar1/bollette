@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL=os.environ["DATABASE_URL"]
+DATABASE_URL=os.environ["DATABASE_URL"].replace("postgresql+psycopg://", "postgresql+psycopg2://")
 engine=create_engine(DATABASE_URL,pool_pre_ping=True)
 SessionLocal=sessionmaker(bind=engine,autoflush=False,autocommit=False)
 
