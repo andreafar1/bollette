@@ -6,7 +6,8 @@ BILL_COLUMNS={
  "email_sender":"VARCHAR(500)",
  "email_subject":"VARCHAR(1000)",
  "email_date":"TIMESTAMP",
- "content_hash":"VARCHAR(64)",\n "smart_url":"TEXT"
+ "content_hash":"VARCHAR(64)",
+ "smart_url":"TEXT"
 }
 def migrate():
     insp=inspect(engine)
