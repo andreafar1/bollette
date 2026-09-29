@@ -14,6 +14,11 @@ class Bill(Base):
     status: Mapped[str]=mapped_column(String(30),default="DA_PAGARE")
     invoice_number: Mapped[str|None]=mapped_column(String(120),nullable=True)
     pdf_path: Mapped[str|None]=mapped_column(String(500),nullable=True)
+    source_account: Mapped[str|None]=mapped_column(String(255),nullable=True)
+    email_sender: Mapped[str|None]=mapped_column(String(500),nullable=True)
+    email_subject: Mapped[str|None]=mapped_column(String(1000),nullable=True)
+    email_date: Mapped[datetime|None]=mapped_column(DateTime,nullable=True)
+    content_hash: Mapped[str|None]=mapped_column(String(64),nullable=True)
     created_at: Mapped[datetime]=mapped_column(DateTime,default=datetime.utcnow)
 
 class EmailAccount(Base):
