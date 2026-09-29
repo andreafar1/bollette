@@ -101,6 +101,15 @@ def mark_paid(bill_id:int):
         if b: b.status="PAGATA"; db.commit()
     return RedirectResponse("/",303)
 
+@app.get("/bills/{bill_id}/smart")
+def smart_bill(bill_id:int):
+    with SessionLocal() as db:
+        b=db.get(Bill,bill_id)
+        url=b.smart_url if b else None
+    if not url or not url.startswith("https://interattiva.eniplenitude.com/"):
+        return RedirectResponse("/",303)
+    return RedirectResponse(url,302)
+
 @app.get("/bills/{bill_id}/pdf")
 def pdf(bill_id:int):
     with SessionLocal() as db: b=db.get(Bill,bill_id)
